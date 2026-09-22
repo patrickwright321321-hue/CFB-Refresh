@@ -1,33 +1,31 @@
-name: Highlightly Compatibility Test
+name: Highlightly + cfbfastR Coverage Test
 
 on:
   workflow_dispatch:
 
 jobs:
-  highlightly-test:
+  source-coverage-test:
     runs-on: ubuntu-latest
     env:
       HIGHLIGHTLY_API_KEY: ${{ secrets.HIGHLIGHTLY_API_KEY }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Verify Highlightly secret is configured
+      - run: pip install -r requirements.txt
+      - name: Verify secret
         run: |
           python - <<'PY'
           import os
-          if not os.getenv("HIGHLIGHTLY_API_KEY"):
-              raise SystemExit("HIGHLIGHTLY_API_KEY is not configured")
+          assert os.getenv("HIGHLIGHTLY_API_KEY"), "HIGHLIGHTLY_API_KEY is not configured"
           print("Highlightly API key is configured.")
           PY
-
-      - name: Run compatibility test scaffold
+      - name: Test cfbfastR/raw ESPN/Highlightly coverage
         run: python src/highlightly_test.py
+      - name: Upload isolated coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfb-source-coverage
+          path: test-output/coverage.json
+          retention-days: 14
