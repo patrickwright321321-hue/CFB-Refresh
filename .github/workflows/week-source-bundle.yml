@@ -1,0 +1,34 @@
+name: Week Source Bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      completed_week:
+        description: "Completed model week"
+        required: true
+        default: "5"
+  push:
+    branches: [main]
+    paths:
+      - "src/build_refresh_bundle.py"
+      - ".github/workflows/week-source-bundle.yml"
+
+jobs:
+  build-week-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install extraction dependencies
+        run: pip install "pandas>=2.2,<3" "pyarrow>=17,<22" "requests>=2.32,<3"
+      - name: Build Week source bundle
+        run: python src/build_refresh_bundle.py --completed-week "${{ github.event.inputs.completed_week || '5' }}"
+      - name: Upload Week source bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfb-week-source-bundle
+          path: test-output/week-source/
+          retention-days: 14
