@@ -13,6 +13,7 @@ ASSETS = {
     "schedule_2025": "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-cfb-data/main/cfb/cfb_schedules/parquet/cfb_schedules_2025.parquet",
     "pbp_2026": "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-cfb-data/main/cfb/pbp/parquet/play_by_play_2026.parquet",
     "team_box_2026": "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-cfb-data/main/cfb/team_box/parquet/team_box_2026.parquet",
+    "betting_2026": "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-cfb-data/main/cfb/betting/parquet/betting_2026.parquet",
     "raw_schedule_2026": "https://raw.githubusercontent.com/sportsdataverse/cfbfastR-cfb-raw/main/cfb/schedules/csv/cfb_schedule_2026.csv",
 }
 
@@ -21,7 +22,7 @@ OUT.mkdir(exist_ok=True)
 
 manifest = {}
 s = requests.Session()
-s.headers.update({"User-Agent": "CFB-Refresh-source-bundle/1.2"})
+s.headers.update({"User-Agent": "CFB-Refresh-source-bundle/1.3"})
 
 for name, url in ASSETS.items():
     r = s.get(url, timeout=120)
@@ -47,6 +48,17 @@ for year in (2025, 2026):
         "bytes": c.stat().st_size,
         "sha256": hashlib.sha256(c.read_bytes()).hexdigest(),
     }
+
+bet = pd.read_parquet(OUT / "betting_2026.parquet")
+bet_csv = OUT / "betting_2026.csv"
+bet.to_csv(bet_csv, index=False)
+manifest["betting_2026_csv"] = {
+    "rows": len(bet),
+    "columns": list(bet.columns),
+    "file": bet_csv.name,
+    "bytes": bet_csv.stat().st_size,
+    "sha256": hashlib.sha256(bet_csv.read_bytes()).hexdigest(),
+}
 
 (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2))
 print(json.dumps(manifest, indent=2))
