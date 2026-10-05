@@ -1,13 +1,11 @@
-"""Download the exact SportsDataverse assets needed for the weekly refresh.
-
-Runs in GitHub Actions only. Does not touch Google Sheets or model formulas.
-"""
+"""Download and normalize the exact SportsDataverse assets needed for weekly refresh."""
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
 
+import pandas as pd
 import requests
 
 ASSETS = {
@@ -23,7 +21,7 @@ OUT.mkdir(exist_ok=True)
 
 manifest = {}
 s = requests.Session()
-s.headers.update({"User-Agent": "CFB-Refresh-source-bundle/1.1"})
+s.headers.update({"User-Agent": "CFB-Refresh-source-bundle/1.2"})
 
 for name, url in ASSETS.items():
     r = s.get(url, timeout=120)
@@ -36,6 +34,18 @@ for name, url in ASSETS.items():
         "bytes": len(r.content),
         "sha256": hashlib.sha256(r.content).hexdigest(),
         "file": path.name,
+    }
+
+for year in (2025, 2026):
+    p = OUT / f"schedule_{year}.parquet"
+    d = pd.read_parquet(p)
+    c = OUT / f"schedule_{year}.csv.gz"
+    d.to_csv(c, index=False, compression="gzip")
+    manifest[f"schedule_{year}_csv"] = {
+        "rows": len(d),
+        "file": c.name,
+        "bytes": c.stat().st_size,
+        "sha256": hashlib.sha256(c.read_bytes()).hexdigest(),
     }
 
 (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2))
