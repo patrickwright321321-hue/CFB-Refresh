@@ -1,0 +1,27 @@
+name: Build 2026 CFB Source Bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/build_source_bundle.py"
+      - ".github/workflows/source-bundle.yml"
+
+jobs:
+  build-source-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Download exact 2026 source assets
+        run: python src/build_source_bundle.py
+      - name: Upload source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfb-2026-source-bundle
+          path: source-bundle/
+          retention-days: 7
