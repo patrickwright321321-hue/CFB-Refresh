@@ -2,6 +2,12 @@ name: Highlightly + cfbfastR Coverage Test
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/highlightly_test.py"
+      - ".github/workflows/highlightly-test.yml"
+      - "requirements.txt"
 
 jobs:
   source-coverage-test:
@@ -24,6 +30,7 @@ jobs:
       - name: Test cfbfastR/raw ESPN/Highlightly coverage
         run: python src/highlightly_test.py
       - name: Upload isolated coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cfb-source-coverage
