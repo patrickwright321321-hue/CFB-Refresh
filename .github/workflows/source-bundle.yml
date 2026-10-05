@@ -16,8 +16,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests
-      - name: Download exact 2026 source assets
+      - run: pip install requests pandas pyarrow
+      - name: Download and normalize source assets
         run: python src/build_source_bundle.py
       - name: Upload source bundle
         uses: actions/upload-artifact@v4
