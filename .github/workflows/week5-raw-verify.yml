@@ -1,0 +1,28 @@
+name: Week 5 Raw ESPN Verify
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/verify_week5_raw.py"
+      - ".github/workflows/week5-raw-verify.yml"
+
+jobs:
+  raw-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "pandas>=2.2,<3" "pyarrow>=17,<22" "requests>=2.32,<3"
+      - name: Verify Week 5 score-sequence anomalies
+        run: python src/verify_week5_raw.py
+      - name: Upload raw verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfb-week5-raw-checks
+          path: test-output/raw-week5/raw_checks.json
+          retention-days: 14
